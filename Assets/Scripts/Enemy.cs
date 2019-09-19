@@ -70,6 +70,7 @@ public class Enemy : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision)
     {
+        
         //On collision trigger the squish effect
         if (collision.gameObject.tag == "Player")
         {
@@ -79,7 +80,7 @@ public class Enemy : MonoBehaviour {
                 StopCoroutine(currentCoroutine);
                 currentCoroutine = null;
             }
-
+            
             currentCoroutine = StartCoroutine(SquashNStretch());
         }
     }
