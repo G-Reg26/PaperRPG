@@ -6,20 +6,27 @@ public class PlayerController : MonoBehaviour {
 
     public float moveSpeed;
     public float hopHeight;
+
+    public float maxScale;
+
     public bool attack;
     public bool attackTwo;
-    public float n;
+
     public ParticleSystem dust;
 
     public Transform enemy;
 
     private Coroutine currentCoroutine;
     private Rigidbody rb;
+
+    private Vector3 initPos;
     private Vector3 dustLocalPosition;
 
 	// Use this for initialization
 	void Start () {
         rb = GetComponent<Rigidbody>();
+
+        initPos = transform.position;
         dustLocalPosition = dust.transform.localPosition;
 	}
 	
@@ -64,31 +71,31 @@ public class PlayerController : MonoBehaviour {
         rb.velocity = -Vector3.right * moveSpeed / 5.0f;
 
         //Increase in size while charging up
-
-        
-        while (Mathf.Abs(transform.position.x - enemy.position.x) < 12.0f)
+        while (transform.localScale.x < maxScale)
         {
-            n += 0.5f * Time.deltaTime;
-            transform.localScale = new Vector3(n*1.0f, n*1.0f, n*1.0f);
+            float n = transform.localScale.x + (0.5f * Time.deltaTime);
+
+            transform.localScale = new Vector3(n, n, n);
+
             yield return null;
         }
 
-        //The point where it should stop charging and start running
-        yield return new WaitUntil(() => Mathf.Abs(transform.position.x - enemy.position.x) >= 12.0f);
         dust.Play();
         
         // move towards enemy
         rb.velocity = Vector3.right * moveSpeed * 2.0f;
-        while (n > 1)
+
+        while (transform.localScale.x > 1)
         {
-            n -= 1.0f * Time.deltaTime;
-            transform.localScale = new Vector3(n * 1.0f, n * 1.0f, n * 1.0f);
+            float n = transform.localScale.x - (1.0f * Time.deltaTime);
+
+            transform.localScale = new Vector3(n, n, n);
+
             yield return null;
         }
 
         // halt for 0.5s
         //rb.velocity = Vector3.zero;
-
     }
 
     public IEnumerator Retreat()
@@ -96,18 +103,18 @@ public class PlayerController : MonoBehaviour {
         // hop off
         rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
 
-        n = 1;
-        transform.localScale = new Vector3(n * 1.0f, n * 1.0f, n * 1.0f);
+        transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         //Wait until back in the reset position
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, enemy.position) >= 10.0f);
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < 0.05f);
+
+        transform.position = initPos;
 
         // halt for 0.5s
         rb.velocity = Vector3.zero;
 
-        attack = false;
-        attackTwo = false;
         currentCoroutine = null;
+
         dust.transform.parent = transform;
         dust.transform.localPosition = dustLocalPosition;
     }
@@ -117,6 +124,9 @@ public class PlayerController : MonoBehaviour {
         //On collision trigger the squish effect
         if (collision.gameObject.tag == "Enemy")
         {
+            attack = false;
+            attackTwo = false;
+
             dust.Stop();
             dust.transform.parent = null;
 
