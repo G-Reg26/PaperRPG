@@ -46,3 +46,9 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# UnecessaryFiles
+/Assets/Plugins
+/Assets/Plugins.meta
+/Packages
+/ProjectSettings
