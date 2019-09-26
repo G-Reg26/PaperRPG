@@ -1,6 +1,6 @@
 # A list of things to be incorporated in the project:
 
-#General Tasks:
+# General Tasks:
 
 ## Brian:
 ### Overworld:
