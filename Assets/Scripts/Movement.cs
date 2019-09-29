@@ -6,23 +6,42 @@ public class Movement : MonoBehaviour
 {
     private Vector3 target;
     private bool facingRight;
+    public float moveSpeed;
+
+    public float groundCheckRadius;
+    public LayerMask whatIsGround;
+    public bool grounded;
+
+    public Transform sprite;
+    public Transform feet;
+
+    private Rigidbody rb;
+
+    public ParticleSystem dust;
+    private Vector3 dustLocalPosition;
 
     // Start is called before the first frame update
     void Start()
     {
-        target = transform.forward;
+        rb = GetComponent<Rigidbody>();
+        dustLocalPosition = dust.transform.localPosition;
+
+        target = sprite.forward;
+        facingRight = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // look at target
-        Vector3 dir = Vector3.RotateTowards(transform.forward, target, 10 * Time.deltaTime, 0.0f);
+        grounded = Physics.CheckSphere(feet.transform.position, groundCheckRadius, whatIsGround);
 
-        transform.rotation = Quaternion.LookRotation(dir);
+        // look at target
+        Vector3 dir = Vector3.RotateTowards(sprite.forward, target, 15 * Time.deltaTime, 0.0f);
+
+        sprite.rotation = Quaternion.LookRotation(dir);
 
         // right input
-        if (Input.GetAxis("Horizontal") > 0.0f)
+        if (Input.GetAxisRaw("Horizontal") > 0.0f)
         {
             // change target
             if (!facingRight)
@@ -32,7 +51,7 @@ public class Movement : MonoBehaviour
             }
         }
         // left input
-        else if (Input.GetAxis("Horizontal") < 0.0f)
+        else if (Input.GetAxisRaw("Horizontal") < 0.0f)
         {
             // change target
             if (facingRight)
@@ -41,5 +60,14 @@ public class Movement : MonoBehaviour
                 facingRight = false;
             }
         }
+
+        //Tracks input to keep moving the player
+        rb.velocity = new Vector3(Input.GetAxis("Horizontal") * moveSpeed, rb.velocity.y, Input.GetAxis("Vertical") * moveSpeed * 1.50f);
+
+        if (Input.GetButtonDown("Jump") && grounded)
+        {
+            rb.velocity = new Vector3(rb.velocity.x, 10.0f, rb.velocity.z);
+        }
+        
     }
 }
