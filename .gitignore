@@ -52,4 +52,5 @@ crashlytics-build.properties
 /Assets/Plugins.meta
 /Packages
 /ProjectSettings
+/ProjectSettings/TagManager.asset
 /UnityPackageManager
