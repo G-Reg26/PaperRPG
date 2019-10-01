@@ -14,6 +14,7 @@ public class Movement : MonoBehaviour
 
     public Transform sprite;
     public Transform feet;
+    public Animator anim;
 
     private Rigidbody rb;
 
@@ -30,10 +31,18 @@ public class Movement : MonoBehaviour
         facingRight = true;
     }
 
+    private void LateUpdate()
+    {
+        anim.SetFloat("Velocity", Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z));
+        anim.SetBool("Grounded", grounded);
+    }
+
     // Update is called once per frame
     void Update()
     {
         grounded = Physics.CheckSphere(feet.transform.position, groundCheckRadius, whatIsGround);
+
+        Debug.Log(Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z));
 
         // look at target
         Vector3 dir = Vector3.RotateTowards(sprite.forward, target, 15 * Time.deltaTime, 0.0f);
