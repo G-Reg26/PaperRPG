@@ -1,14 +1,9 @@
 fileFormatVersion: 2
-guid: e76bec99072c5d04ca7cf81d32f24e49
+guid: 3619d12741f807a4ebd9b933b643b3c4
 TextureImporter:
   fileIDToRecycleName:
-    21300000: Chef-sheet_0
-    21300002: Chef-sheet_1
-    21300004: Chef-sheet_2
-    21300006: Chef-sheet_3
-    21300008: Chef-sheet_4
-    21300010: Chef-sheet_5
-    21300012: Chef-sheet_6
+    21300000: SkilletSpriteSheet_0
+    21300002: SkilletSpriteSheet_1
   externalObjects: {}
   serializedVersion: 7
   mipmaps:
@@ -38,7 +33,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: -1
     aniso: -1
     mipBias: -100
     wrapU: 1
@@ -67,8 +62,8 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 2
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
+    maxTextureSize: 256
+    resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
@@ -78,8 +73,8 @@ TextureImporter:
     androidETC2FallbackOverride: 0
   - serializedVersion: 2
     buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
+    maxTextureSize: 256
+    resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
@@ -89,8 +84,8 @@ TextureImporter:
     androidETC2FallbackOverride: 0
   - serializedVersion: 2
     buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
+    maxTextureSize: 256
+    resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
@@ -100,8 +95,8 @@ TextureImporter:
     androidETC2FallbackOverride: 0
   - serializedVersion: 2
     buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
+    maxTextureSize: 256
+    resizeAlgorithm: 1
     textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
@@ -113,13 +108,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Chef-sheet_0
+      name: SkilletSpriteSheet_0
       rect:
         serializedVersion: 2
-        x: 58
-        y: 12
-        width: 143
-        height: 232
+        x: 11
+        y: 15
+        width: 113
+        height: 109
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -127,19 +122,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: af2bd65a63adc8e4e8be398ba3980f00
+      spriteID: 117c397d03b8a22489a90bcd9274ee58
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chef-sheet_1
+      name: SkilletSpriteSheet_1
       rect:
         serializedVersion: 2
-        x: 297
-        y: 12
-        width: 167
-        height: 232
+        x: 139
+        y: 15
+        width: 113
+        height: 109
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,107 +142,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ad468c2f109d05a4eba780daaddc6654
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Chef-sheet_2
-      rect:
-        serializedVersion: 2
-        x: 560
-        y: 19
-        width: 156
-        height: 225
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c0355827ee85c884ca17416e9b6e37d1
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Chef-sheet_3
-      rect:
-        serializedVersion: 2
-        x: 826
-        y: 14
-        width: 143
-        height: 234
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b2dbef97c204bb742b1f2f4c1af96182
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Chef-sheet_4
-      rect:
-        serializedVersion: 2
-        x: 1082
-        y: 16
-        width: 143
-        height: 232
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ae62e184dd5a01545a402cd2412279f4
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Chef-sheet_5
-      rect:
-        serializedVersion: 2
-        x: 1324
-        y: 12
-        width: 148
-        height: 228
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 49a0ea37ebf86a14fa1a1a07d1e1197d
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Chef-sheet_6
-      rect:
-        serializedVersion: 2
-        x: 1578
-        y: 12
-        width: 169
-        height: 231
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: af8c1a2736c58ce4cb38e94ae9240e94
+      spriteID: 9a4aeefb088427442b0e8462b49d593c
       vertices: []
       indices: 
       edges: []
@@ -255,7 +150,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: f0d25a390213b594c91e4a812da45b21
+    spriteID: 385aee956f4cf3b44b008648d4002742
     vertices: []
     indices: 
     edges: []
