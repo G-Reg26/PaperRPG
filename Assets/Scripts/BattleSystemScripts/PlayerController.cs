@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
@@ -13,49 +12,67 @@ public class PlayerController : MonoBehaviour {
 
     public States currentState;
 
-    public float moveSpeed;
-    public float hopHeight;
-    public float initSNSpeed;
-
-    public float maxScale;
-    public float groundCheckRadius;
-
-    public bool grounded;
-    public bool facingRight;
-    public bool doubleHop;
-
     public Attack[] attacks;
 
-    public ParticleSystem dust;
+    public float moveSpeed;
+    public float hopHeight;
+    public float squashNStretchSpeed;
 
-    public Transform sprite;
-    public Transform enemy;
-    public Transform feet;
+    public float maxScale;
 
-    public Rigidbody rb;
+    public GameObject cubesContainer;
+    public MeshRenderer[] cubes;
 
-    public Animator anim;
-
-    public LayerMask whatIsGround;
+    [SerializeField]
+    private LayerMask whatIsGround;
+    [SerializeField]
+    private float groundCheckRadius;
 
     private Coroutine currentCoroutine;
 
+    private Transform enemy;
+
+    private Transform sprite;
+    private Transform feet;
+    private ParticleSystem dust;
+
     private Vector3 initPos;
     private Vector3 dustLocalPosition;
+
+    private Rigidbody rb;
+
+    private Animator anim;
 
     private float initY;
 
     private float squashDegree;    
     private float SNSpeed;
 
+    private bool grounded;
+    private bool facingRight;
+    private bool doubleHop;
+
     // Use this for initialization
-    void Start () {
-        rb = GetComponent<Rigidbody>();
+    void Start ()
+    {
+        enemy = FindObjectOfType<Enemy>().transform;
+
+        sprite = GetComponentInChildren<SpriteRenderer>().transform;
+        feet = transform.Find("Feet");
+        dust = GetComponentInChildren<ParticleSystem>();
+
+        dustLocalPosition = dust.transform.localPosition;
 
         initPos = transform.position;
         initY = sprite.localPosition.y;
 
-        dustLocalPosition = dust.transform.localPosition;
+        rb = GetComponent<Rigidbody>();
+
+        anim = sprite.GetComponent<Animator>();
+
+        cubes = cubesContainer.GetComponentsInChildren<MeshRenderer>();
+
+        cubesContainer.SetActive(false);
 
         currentState = States.WAITING;
 
@@ -65,10 +82,9 @@ public class PlayerController : MonoBehaviour {
 
     private void Reset()
     {
-        //Reset values for before enemy is hit
         squashDegree = 0.0f;
 
-        SNSpeed = initSNSpeed;
+        SNSpeed = squashNStretchSpeed;
 
         sprite.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
@@ -76,12 +92,16 @@ public class PlayerController : MonoBehaviour {
         currentState = States.WAITING;
     }
 
-    // Update is called once per frame
-    void Update() {
-        grounded = Physics.CheckSphere(feet.position, groundCheckRadius, whatIsGround);
-
+    private void LateUpdate()
+    {
         anim.SetFloat("VelX", Mathf.Abs(rb.velocity.x));
         anim.SetBool("Grounded", grounded);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        grounded = Physics.CheckSphere(feet.position, groundCheckRadius, whatIsGround);
 
         if (facingRight)
         {
@@ -98,7 +118,7 @@ public class PlayerController : MonoBehaviour {
 
         switch (currentState) {
             case States.WAITING:
-                float offset = sinFunc(squashDegree, 2.0f, 0.05f);
+                float offset = SinFunc(squashDegree, 2.0f, 0.05f);
 
                 sprite.localScale = new Vector3(1.0f - (offset / 2.0f), 1.0f + offset, 1.0f);
                 sprite.localPosition = new Vector3(sprite.localPosition.x, initY + offset, sprite.localPosition.z);
@@ -112,18 +132,40 @@ public class PlayerController : MonoBehaviour {
                 }
                 break;
             case States.ATTACKING:
-                //Debug.Log(Vector3.Distance(transform.position, enemy.position));
                 break;
         }
     }
 
-    float sinFunc(float x, float freq, float amp)
+    float SinFunc(float x, float freq, float amp)
     {
         float theta = (freq * x) + (Mathf.PI / 2.0f);
 
         return (Mathf.Sin(theta) * amp) - amp;
     }
 
+    public void PlayDustParticles()
+    {
+        dust.Play();
+    }
+
+    // getters
+    public Rigidbody GetRigidbody()
+    {
+        return rb;
+    }
+
+    public Animator GetAnimator()
+    {
+        return anim;
+    }
+
+    // setters
+    public void SetDoubleHop(bool doubleHop)
+    {
+        this.doubleHop = doubleHop;
+    }
+
+    // state behaviors
     public void Attack(int index)
     {
         Reset();
@@ -133,12 +175,19 @@ public class PlayerController : MonoBehaviour {
         currentCoroutine = StartCoroutine(attacks[index].Behavior(this, enemy));
     }
 
-    public IEnumerator Retreat()
+    public void Retreat()
     {
-        FindObjectOfType<BattleCameraController>().ToInitialPoint();
+        currentState = States.RETREAT;
 
-        // hop off
-        rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
+        currentCoroutine = StartCoroutine(RetreatBehavior());
+    }
+
+    // coroutines
+    public IEnumerator RetreatBehavior()
+    {
+        rb.velocity = new Vector3(-moveSpeed, rb.velocity.y, rb.velocity.z);
+
+        FindObjectOfType<BattleCameraController>().ToInitialPoint();
 
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
@@ -183,9 +232,10 @@ public class PlayerController : MonoBehaviour {
             }
             else
             {
-                currentState = States.RETREAT;
+                // hop off
+                rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
 
-                currentCoroutine = StartCoroutine(Retreat());
+                Retreat();
             }
         }
     }

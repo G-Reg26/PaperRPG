@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour {
@@ -13,43 +12,59 @@ public class Enemy : MonoBehaviour {
 
     public States currentState;
 
-    public Transform sprite;
-    public Transform player;
-    public Coroutine currentCoroutine;
-
     public float moveSpeed;
-    public float initSNSpeed;
     public float hopHeight;
-    
+    public float squashNStretchSpeed;
+
+    private Coroutine currentCoroutine;
+
+    private Transform player;
+
+    private Transform sprite;
+
     private Vector3 initPos;
 
     private Rigidbody rb;
 
-    //Controls degree of squish
-    private float squashDegree;
     private float initY;
 
-    //Controls speed of squishing eff
+    private float squashDegree;
     private float SNSpeed;
 
 	// Use this for initialization
-	void Start () {
-        rb = GetComponent<Rigidbody>();
+	void Start ()
+    {
+        player = FindObjectOfType<PlayerController>().transform;
+
+        sprite = GetComponentInChildren<SpriteRenderer>().transform;
 
         initPos = transform.position;
-
         initY = sprite.localPosition.y;
+
+        rb = GetComponent<Rigidbody>();
 
         Reset();
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    private void Reset()
+    {
+        squashDegree = 0.0f;
+
+        SNSpeed = squashNStretchSpeed;
+
+        sprite.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
+
+        currentState = States.IDLE;
+    }
+
+    // Update is called once per frame
+    void Update ()
     {
         switch (currentState)
         {
             case States.IDLE:
-                float offset = sinFunc(squashDegree, 2.0f, 0.05f);
+                float offset = SinFunc(squashDegree, 2.0f, 0.05f);
 
                 sprite.localScale = new Vector3(1.0f - (offset / 2.0f), 1.0f + offset, 1.0f);
                 sprite.localPosition = new Vector3(sprite.localPosition.x, initY + offset, sprite.localPosition.z);
@@ -61,20 +76,7 @@ public class Enemy : MonoBehaviour {
         }   
     }
 
-    private void Reset()
-    {
-        //Reset values for before enemy is hit
-        squashDegree = 0.0f;
-
-        SNSpeed = initSNSpeed;
-
-        sprite.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
-
-        currentState = States.IDLE;
-    }
-
-    float sinFunc(float x, float freq, float amp)
+    float SinFunc(float x, float freq, float amp)
     {
         float theta = (freq * x) + (Mathf.PI / 2.0f);
 
@@ -86,7 +88,7 @@ public class Enemy : MonoBehaviour {
         //While loop for Squish Animation
         while (SNSpeed > 0.0f)
         {
-            float offset = sinFunc(squashDegree, 6.0f, 0.1f);
+            float offset = SinFunc(squashDegree, 6.0f, 0.1f);
 
             sprite.localScale = new Vector3(1.0f, 1.0f + offset, 1.0f);
             sprite.transform.localPosition = new Vector3(sprite.localPosition.x, initY + offset, sprite.localPosition.z);
@@ -103,7 +105,7 @@ public class Enemy : MonoBehaviour {
         //Post squish returning to something close to reset state
         while (sprite.localScale.y < 0.95f)
         {
-            float offset = sinFunc(squashDegree, 6.0f, 0.1f);
+            float offset = SinFunc(squashDegree, 6.0f, 0.1f);
 
             sprite.localScale = new Vector3(1.0f, 1.0f + offset, 1.0f);
             sprite.transform.localPosition = new Vector3(sprite.localPosition.x, initY + offset, sprite.localPosition.z);

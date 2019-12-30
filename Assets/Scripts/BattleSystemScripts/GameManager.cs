@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 
@@ -16,75 +15,86 @@ public class GameManager : MonoBehaviour
 
     public States currentState;
 
-    public PlayerController player;
-
-    public GameObject[] attacks;
-
     public Transform menu;
-    public RectTransform content;
-    public ScrollRect scrollRect;
     public Font font;
-    public Image knife;
+    public int fontSize;
+    public float padding;
 
     public float menuScaleSpeed;
-    public float fontSize;
 
-    private Vector2Int range;
+    private GameObject[] attacks;
+
+    private PlayerController player;
+
+    private ScrollRect scrollRect;
+    private RectTransform content;
+    private Image knife;
+
+    private Vector2Int menuRange;
+    private int i;
 
     private bool scroll;
-    private int i;
 
     // Start is called before the first frame update
     void Start()
     {
+        currentState = States.EXPANDING;
+
         player = FindObjectOfType<PlayerController>();
 
+        // set ui components
         menu.transform.localScale = new Vector3(0.0f, 0.0f, 1.0f);
-
-        currentState = States.EXPANDING;
+        scrollRect = menu.GetComponentInChildren<ScrollRect>();
+        content = scrollRect.viewport.GetComponentInChildren<RectTransform>();
+        knife = scrollRect.transform.Find("Knife").GetComponent<Image>();
 
         SetMenuItems();
 
-        range = new Vector2Int(0, attacks.Length - 1);
+        menuRange = new Vector2Int(0, attacks.Length - 1);
+        i = menuRange.x;
 
-        i = range.x;
+        scroll = true;
 
         StartCoroutine(Wait());
     }
 
     void SetMenuItems()
     {
+        // create a ui game object for each player attack
         attacks = new GameObject[player.attacks.Length];
 
-        float width = content.parent.parent.GetComponent<RectTransform>().rect.width;
+        // the width for each object will be the same width as the scroll rect
+        float width = scrollRect.GetComponent<RectTransform>().rect.width;
 
-        Debug.Log(width);
-
-        content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (fontSize + 10.0f) * player.attacks.Length);
+        // set height of the content rect
+        content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (fontSize + padding) * player.attacks.Length);
 
         for (int i = 0; i < player.attacks.Length; i++)
         {
+            // create new ui game object
             attacks[i] = new GameObject("" + i, typeof(RectTransform));
-            attacks[i].AddComponent<Text>();
             attacks[i].transform.parent = content;
 
+            // set rect transform fields
             RectTransform rt = attacks[i].GetComponent<RectTransform>();
-
-            rt.localPosition = new Vector3(0.0f, -(fontSize + 10.0f) * (i + 2), 0.0f);
 
             rt.anchorMin = new Vector2(0.0f, 1.0f);
             rt.anchorMax = new Vector2(0.0f, 1.0f);
             rt.pivot = Vector2.zero;
 
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, fontSize + 10.0f);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, fontSize);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+
+            rt.anchoredPosition = new Vector3(0.0f, -((fontSize + padding) * (i + 1)), 0.0f);
+            rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0.0f);
             rt.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
-            Text text = attacks[i].GetComponent<Text>();
+            // add and set text component in attack game object
+            Text text = attacks[i].AddComponent<Text>();
 
             text.color = Color.black;
             text.font = font;
-            text.fontSize = (int)fontSize;
+            text.fontSize = fontSize;
             text.alignment = TextAnchor.MiddleCenter;
             text.supportRichText = true;
             text.alignByGeometry = true;
@@ -98,41 +108,47 @@ public class GameManager : MonoBehaviour
         switch (currentState)
         {
             case States.SELECTING:
-                if (Input.GetAxis("Vertical") > 0.0f)
-                {
-                    if (scroll)
-                    {
-                        i = i - 1 < range.x ? range.y : i - 1;
-                        scroll = false;
-                    }
-                }
-                else if (Input.GetAxis("Vertical") < 0.0f)
-                {
-                    if (scroll)
-                    {
-                        i = i + 1 > range.y ? range.x : i + 1;
-                        scroll = false;
-                    }
-                }
-                else
+                // scroll through menu
+                // if stick is idle
+                if (Input.GetAxisRaw("Vertical") == 0.0f)
                 {
                     scroll = true;
                 }
+                else
+                {
+                    if (scroll)
+                    {
+                        // go up or wrap around to the bottom
+                        if (Input.GetAxis("Vertical") > 0.0f)
+                        {
+                            i = i - 1 < menuRange.x ? menuRange.y : i - 1;
+                            scroll = false;
+                        }
+                        // go down or wrap around to the top
+                        else if (Input.GetAxis("Vertical") < 0.0f)
+                        {
+                            i = i + 1 > menuRange.y ? menuRange.x : i + 1;
+                            scroll = false;
+                        }
+                    }
+                }
 
+                // select menu item
                 if (Input.GetButtonDown("Jump"))
                 {
                     currentState = States.SHRINKING;
 
                     StartCoroutine(ShrinkMenu(i));
 
-                    i = range.x;
+                    i = menuRange.x;
 
                     break;
                 }
 
-                Vector3 target = new Vector3(knife.rectTransform.position.x, attacks[i].GetComponent<Text>().rectTransform.position.y + 0.1f, knife.rectTransform.position.z);
+                // move knife to allign with current menu item
+                Vector3 target = new Vector3(knife.rectTransform.anchoredPosition.x, attacks[i].GetComponent<Text>().rectTransform.anchoredPosition.y + 0.1f, 0.0f);
 
-                knife.rectTransform.position = Vector3.Lerp(knife.rectTransform.position, target, 15.0f * Time.deltaTime);
+                knife.rectTransform.anchoredPosition = Vector3.Lerp(knife.rectTransform.anchoredPosition, target, 15.0f * Time.deltaTime);
                 break;
             case States.WAITING:
                 if (player.currentState == PlayerController.States.WAITING)

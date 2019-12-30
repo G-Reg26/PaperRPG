@@ -6,8 +6,8 @@ public class Jump : Attack
 {
     private PlayerController player;
 
-    public bool waitForInput;
-    public bool canDoubleHop;
+    private bool waitForInput;
+    private bool canDoubleHop;
 
     override public void Start()
     {
@@ -26,7 +26,7 @@ public class Jump : Attack
                     {
                         if (canDoubleHop)
                         {
-                            player.doubleHop = true;
+                            player.SetDoubleHop(true);
                             canDoubleHop = false;
                         }
 
@@ -49,22 +49,22 @@ public class Jump : Attack
         this.player = player;
 
         // move towards enemy
-        player.rb.velocity = Vector3.right * player.moveSpeed;
+        player.GetRigidbody().velocity = Vector3.right * player.moveSpeed;
 
         // wait until player is at a certain distance from enemy
         yield return new WaitUntil(() => Vector3.Distance(player.transform.position, enemy.position) < 5.0f);
 
         // halt for 0.5s
-        player.rb.velocity = Vector3.zero;
+        player.GetRigidbody().velocity = Vector3.zero;
 
         cameraController.ZoomToEnemies();
 
-        player.anim.Play("PlayerSquat");
+        player.GetAnimator().Play("PlayerSquat");
 
         yield return new WaitForSeconds(1.0f);
 
         // hop
-        player.rb.velocity = new Vector3(player.moveSpeed, player.hopHeight, player.rb.velocity.z);
+        player.GetRigidbody().velocity = new Vector3(player.moveSpeed, player.hopHeight, player.GetRigidbody().velocity.z);
 
         waitForInput = true;
 
