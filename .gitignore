@@ -50,7 +50,4 @@ crashlytics-build.properties
 # UnecessaryFiles
 /Assets/Plugins
 /Assets/Plugins.meta
-/Packages
-/ProjectSettings
-/ProjectSettings/TagManager.asset
 /UnityPackageManager
