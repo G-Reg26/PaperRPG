@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class BattleSceneManager : MonoBehaviour
 {
     public enum States
     {
@@ -24,7 +24,8 @@ public class GameManager : MonoBehaviour
 
     private GameObject[] attacks;
 
-    private PlayerController player;
+    private GiuseppeBattleScripts player;
+    private GreggBattleScript gregg;
 
     private ScrollRect scrollRect;
     private RectTransform content;
@@ -34,13 +35,16 @@ public class GameManager : MonoBehaviour
     private int i;
 
     private bool scroll;
+    [SerializeField]
+    private bool playerAttack;
 
     // Start is called before the first frame update
     void Start()
     {
         currentState = States.EXPANDING;
 
-        player = FindObjectOfType<PlayerController>();
+        player = FindObjectOfType<GiuseppeBattleScripts>();
+        gregg = FindObjectOfType<GreggBattleScript>();
 
         // set ui components
         menu.transform.localScale = new Vector3(0.0f, 0.0f, 1.0f);
@@ -54,6 +58,7 @@ public class GameManager : MonoBehaviour
         i = menuRange.x;
 
         scroll = true;
+        playerAttack = true;
 
         StartCoroutine(Wait());
     }
@@ -105,6 +110,20 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (gregg.currentState == GreggBattleScript.States.WAITING && player.currentState == GiuseppeBattleScripts.States.WAITING)
+        {
+            playerAttack = !playerAttack;
+
+            if (playerAttack)
+            {
+                player.currentState = GiuseppeBattleScripts.States.READY;
+            }
+            else
+            {
+                gregg.currentState = GreggBattleScript.States.READY;
+            }
+        }
+
         switch (currentState)
         {
             case States.SELECTING:
@@ -151,11 +170,17 @@ public class GameManager : MonoBehaviour
                 knife.rectTransform.anchoredPosition = Vector3.Lerp(knife.rectTransform.anchoredPosition, target, 15.0f * Time.deltaTime);
                 break;
             case States.WAITING:
-                if (player.currentState == PlayerController.States.WAITING)
+                if (player.currentState == GiuseppeBattleScripts.States.READY)
                 {
                     currentState = States.EXPANDING;
 
                     StartCoroutine(ExpandMenu());
+                }
+                else if (gregg.currentState == GreggBattleScript.States.READY)
+                {
+                    gregg.currentState = GreggBattleScript.States.ATTACKING;
+
+                    StartCoroutine(gregg.Attack());
                 }
                 break;
         }

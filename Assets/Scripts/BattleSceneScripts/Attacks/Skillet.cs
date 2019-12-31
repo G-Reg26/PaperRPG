@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Skillet : Attack
 {
-    private PlayerController player;
+    private GiuseppeBattleScripts player;
 
     private float timer;
     private int i;
@@ -82,7 +82,7 @@ public class Skillet : Attack
         }
     }
 
-    override public IEnumerator Behavior(PlayerController player, Transform enemy)
+    override public IEnumerator Behavior(GiuseppeBattleScripts player, Transform enemy)
     {
         // Reel back to charge up
         player.GetRigidbody().velocity = Vector3.right * player.moveSpeed;
@@ -116,6 +116,8 @@ public class Skillet : Attack
 
         Reset();
 
-        player.Retreat();
+        player.currentState = DefaultBattleScript.States.RETREAT;
+
+        StartCoroutine(player.RetreatBehavior(-player.moveSpeed, true));
     }
 }
