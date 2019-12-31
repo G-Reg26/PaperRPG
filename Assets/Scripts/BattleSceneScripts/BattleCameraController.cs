@@ -9,7 +9,7 @@ public class BattleCameraController : MonoBehaviour
 
     public float cameraSpeed;
 
-    private GiuseppeBattleScripts player;
+    private GiuseppeBattleScript player;
 
     private Vector3 target;
     private Vector3 initPos;
@@ -17,7 +17,7 @@ public class BattleCameraController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = FindObjectOfType<GiuseppeBattleScripts>();
+        player = FindObjectOfType<GiuseppeBattleScript>();
         initPos = transform.position;
 
         ToInitialPoint();

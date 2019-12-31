@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Jump : Attack
 {
-    private GiuseppeBattleScripts player;
+    private GiuseppeBattleScript player;
 
     private bool waitForInput;
     private bool canDoubleHop;
@@ -21,7 +21,7 @@ public class Jump : Attack
         if (player != null)
         {
             switch (player.currentState) {
-                case GiuseppeBattleScripts.States.ATTACKING:
+                case GiuseppeBattleScript.States.ATTACKING:
                     if (Input.GetButtonDown("Jump") && waitForInput)
                     {
                         if (canDoubleHop)
@@ -35,7 +35,7 @@ public class Jump : Attack
                         waitForInput = false;
                     }
                     break;
-                case GiuseppeBattleScripts.States.RETREAT:
+                case GiuseppeBattleScript.States.RETREAT:
                     player = null;
                     canDoubleHop = false;
                     waitForInput = false;
@@ -44,7 +44,7 @@ public class Jump : Attack
         }
     }
 
-    override public IEnumerator Behavior(GiuseppeBattleScripts player, Transform enemy)
+    override public IEnumerator Behavior(GiuseppeBattleScript player, Transform enemy)
     {
         this.player = player;
 

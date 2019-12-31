@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class GiuseppeBattleScripts : DefaultBattleScript {
+public class GiuseppeBattleScript : DefaultBattleScript {
 
     public Attack[] attacks;
 

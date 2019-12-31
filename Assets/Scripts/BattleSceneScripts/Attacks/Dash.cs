@@ -9,7 +9,7 @@ public class Dash : Attack
         base.Start();
     }
 
-    override public IEnumerator Behavior(GiuseppeBattleScripts player, Transform enemy)
+    override public IEnumerator Behavior(GiuseppeBattleScript player, Transform enemy)
     {
         player.GetAnimator().speed = 0.5f;
 
