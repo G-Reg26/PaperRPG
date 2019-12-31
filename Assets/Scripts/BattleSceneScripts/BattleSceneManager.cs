@@ -24,7 +24,7 @@ public class BattleSceneManager : MonoBehaviour
 
     private GameObject[] attacks;
 
-    private GiuseppeBattleScripts player;
+    private GiuseppeBattleScript player;
     private GreggBattleScript gregg;
 
     private ScrollRect scrollRect;
@@ -43,7 +43,7 @@ public class BattleSceneManager : MonoBehaviour
     {
         currentState = States.EXPANDING;
 
-        player = FindObjectOfType<GiuseppeBattleScripts>();
+        player = FindObjectOfType<GiuseppeBattleScript>();
         gregg = FindObjectOfType<GreggBattleScript>();
 
         // set ui components
@@ -110,13 +110,13 @@ public class BattleSceneManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gregg.currentState == GreggBattleScript.States.WAITING && player.currentState == GiuseppeBattleScripts.States.WAITING)
+        if (gregg.currentState == GreggBattleScript.States.WAITING && player.currentState == GiuseppeBattleScript.States.WAITING)
         {
             playerAttack = !playerAttack;
 
             if (playerAttack)
             {
-                player.currentState = GiuseppeBattleScripts.States.READY;
+                player.currentState = GiuseppeBattleScript.States.READY;
             }
             else
             {
@@ -170,7 +170,7 @@ public class BattleSceneManager : MonoBehaviour
                 knife.rectTransform.anchoredPosition = Vector3.Lerp(knife.rectTransform.anchoredPosition, target, 15.0f * Time.deltaTime);
                 break;
             case States.WAITING:
-                if (player.currentState == GiuseppeBattleScripts.States.READY)
+                if (player.currentState == GiuseppeBattleScript.States.READY)
                 {
                     currentState = States.EXPANDING;
 

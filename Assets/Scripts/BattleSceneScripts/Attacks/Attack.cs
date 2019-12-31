@@ -13,7 +13,7 @@ public class Attack : MonoBehaviour
         cameraController = FindObjectOfType<BattleCameraController>();
     }
 
-    public virtual IEnumerator Behavior(GiuseppeBattleScripts player, Transform enemy)
+    public virtual IEnumerator Behavior(GiuseppeBattleScript player, Transform enemy)
     {
         return null;
     }

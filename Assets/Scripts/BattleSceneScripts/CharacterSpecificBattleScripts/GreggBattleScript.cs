@@ -13,7 +13,7 @@ public class GreggBattleScript : DefaultBattleScript
     {
         base.Start();
 
-        player = FindObjectOfType<GiuseppeBattleScripts>().transform;
+        player = FindObjectOfType<GiuseppeBattleScript>().transform;
 
         cameraController = FindObjectOfType<BattleCameraController>();
 
