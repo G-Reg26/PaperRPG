@@ -1,14 +1,17 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour {
-
+public class DefaultBattleScript : MonoBehaviour
+{
     public enum States
     {
-        IDLE,
+        READY,
+        ATTACKING,
+        RETREAT,
         ATTACKED,
-        STATES
-    };
+        WAITING
+    }
 
     public States currentState;
 
@@ -16,37 +19,45 @@ public class Enemy : MonoBehaviour {
     public float hopHeight;
     public float squashNStretchSpeed;
 
-    private Coroutine currentCoroutine;
+    [SerializeField]
+    protected LayerMask whatIsGround;
+    [SerializeField]
+    protected float groundCheckRadius;
 
-    private Transform player;
+    protected Coroutine currentCoroutine;
 
-    private Transform sprite;
+    protected Transform sprite;
+    protected Transform feet;
 
-    private Vector3 initPos;
+    protected Vector3 initPos;
 
-    private Rigidbody rb;
+    protected Rigidbody rb;
 
-    private float initY;
+    protected Animator anim;
 
-    private float squashDegree;
-    private float SNSpeed;
+    protected float initY;
 
-	// Use this for initialization
-	void Start ()
+    protected float squashDegree;
+    protected float SNSpeed;
+
+    protected bool grounded;
+    protected bool facingRight;
+
+    // Start is called before the first frame update
+    protected void Start()
     {
-        player = FindObjectOfType<PlayerController>().transform;
-
         sprite = GetComponentInChildren<SpriteRenderer>().transform;
+        feet = transform.Find("Feet");
 
         initPos = transform.position;
         initY = sprite.localPosition.y;
 
         rb = GetComponent<Rigidbody>();
 
-        Reset();
+        anim = sprite.GetComponent<Animator>();
     }
 
-    private void Reset()
+    protected void Reset()
     {
         squashDegree = 0.0f;
 
@@ -55,15 +66,24 @@ public class Enemy : MonoBehaviour {
         sprite.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
 
-        currentState = States.IDLE;
+        currentState = States.WAITING;
     }
 
     // Update is called once per frame
-    void Update ()
+    protected void Update()
     {
+        grounded = Physics.CheckSphere(feet.position, groundCheckRadius, whatIsGround);
+
         switch (currentState)
         {
-            case States.IDLE:
+            case States.RETREAT:
+                Retreat();
+                break;
+            case States.ATTACKING:
+                break;
+            case States.ATTACKED:
+                break;
+            default:
                 float offset = SinFunc(squashDegree, 2.0f, 0.05f);
 
                 sprite.localScale = new Vector3(1.0f - (offset / 2.0f), 1.0f + offset, 1.0f);
@@ -71,16 +91,53 @@ public class Enemy : MonoBehaviour {
 
                 squashDegree += Time.deltaTime;
                 break;
-            default:
-                break;
-        }   
+        }
     }
 
-    float SinFunc(float x, float freq, float amp)
+    protected float SinFunc(float x, float freq, float amp)
     {
         float theta = (freq * x) + (Mathf.PI / 2.0f);
 
         return (Mathf.Sin(theta) * amp) - amp;
+    }
+
+    virtual public void Retreat()
+    {
+        
+    }
+
+    // getters
+    public Rigidbody GetRigidbody()
+    {
+        return rb;
+    }
+
+    public Animator GetAnimator()
+    {
+        return anim;
+    }
+
+    public IEnumerator RetreatBehavior(float retreatSpeed, bool faceRight)
+    {
+        rb.velocity = new Vector3(retreatSpeed, rb.velocity.y, rb.velocity.z);
+
+        FindObjectOfType<BattleCameraController>().ToInitialPoint();
+
+        transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+        //Wait until back in the reset position
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < 0.05f);
+
+        transform.position = initPos;
+
+        // halt for 0.5s
+        rb.velocity = Vector3.zero;
+
+        currentState = States.WAITING;
+
+        facingRight = faceRight;
+
+        currentCoroutine = null;
     }
 
     public IEnumerator SquashNStretch()
@@ -92,7 +149,7 @@ public class Enemy : MonoBehaviour {
 
             sprite.localScale = new Vector3(1.0f, 1.0f + offset, 1.0f);
             sprite.transform.localPosition = new Vector3(sprite.localPosition.x, initY + offset, sprite.localPosition.z);
-            
+
             squashDegree += Time.deltaTime * SNSpeed;
 
             SNSpeed -= Mathf.Pow(Time.deltaTime, 0.5f);
@@ -119,23 +176,30 @@ public class Enemy : MonoBehaviour {
         Reset();
     }
 
-    public IEnumerator BumpedInto()
+    public IEnumerator BumpedInto(float bumpSpeed)
     {
-        rb.velocity = new Vector3(moveSpeed, hopHeight, rb.velocity.z);
+        rb.velocity = new Vector3(bumpSpeed, hopHeight, rb.velocity.z);
 
-        float n = moveSpeed;
+        float n = bumpSpeed;
 
         while (n > 0)
         {
             rb.velocity = new Vector3(n, rb.velocity.y, rb.velocity.z);
 
-            n -= 5.0f * Time.deltaTime;
+            if (moveSpeed > 0.0f)
+            {
+                n -= 5.0f * Time.deltaTime;
+            }
+            else
+            {
+                n += 5.0f * Time.deltaTime;
+            }
 
             yield return null;
         }
 
         // Reel back to charge up
-        rb.velocity = -Vector3.right * moveSpeed;
+        rb.velocity = Vector3.right * -bumpSpeed;
 
         //Wait until back in the reset position
         yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < moveSpeed * 0.02f);
@@ -145,33 +209,5 @@ public class Enemy : MonoBehaviour {
         rb.velocity = Vector3.zero;
 
         Reset();
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        //On collision trigger the squish effect
-        if (collision.gameObject.tag == "Player")
-        {
-            Reset();
-
-            currentState = States.ATTACKED;
-
-            Vector3 collisionNormal =  collision.contacts[0].normal;
-            //Cancel current coroutine if one is active
-            if (currentCoroutine != null)
-            {
-                StopCoroutine(currentCoroutine);
-                currentCoroutine = null;
-            }
-
-            if (Vector3.Dot(collisionNormal, -Vector3.up) == 1.0f)
-            {
-                currentCoroutine = StartCoroutine(SquashNStretch());
-            }
-            else if (Vector3.Dot(collisionNormal, Vector3.right) == 1.0f)
-            {
-                currentCoroutine = StartCoroutine(BumpedInto());
-            }
-        }
     }
 }
