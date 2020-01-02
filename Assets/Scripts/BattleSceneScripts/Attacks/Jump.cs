@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class Jump : Attack
 {
-    private GiuseppeBattleScript player;
+    private DefaultBattleScript entity;
+
+    Vector3 jumpPos;
+    Vector3 lookAtPoint;
 
     private bool waitForInput;
     private bool canDoubleHop;
@@ -18,25 +21,36 @@ public class Jump : Attack
 
     public void Update()
     {
-        if (player != null)
+        if (entity != null)
         {
-            switch (player.currentState) {
-                case GiuseppeBattleScript.States.ATTACKING:
-                    if (Input.GetButtonDown("Jump") && waitForInput)
+            switch (entity.currentState) {
+                case DefaultBattleScript.States.ATTACKING:
+                    if (entity.GetComponent<GiuseppeBattleScript>() != null)
                     {
-                        if (canDoubleHop)
+                        if (Input.GetButtonDown("Jump") && waitForInput)
                         {
-                            player.SetDoubleHop(true);
-                            canDoubleHop = false;
-                        }
+                            if (canDoubleHop)
+                            {
+                                entity.GetComponent<GiuseppeBattleScript>().SetDoubleHop(true);
+                                canDoubleHop = false;
+                            }
 
-                        player = null;
-                        canDoubleHop = false;
-                        waitForInput = false;
+                            entity = null;
+                            canDoubleHop = false;
+                            waitForInput = false;
+                        }
+                    }
+                    else
+                    {
+                        float angle = Vector3.SignedAngle(lookAtPoint - jumpPos, lookAtPoint - entity.transform.position, entity.transform.forward);
+
+                        entity.transform.rotation = Quaternion.Euler(0.0f, 0.0f, angle);
                     }
                     break;
-                case GiuseppeBattleScript.States.RETREAT:
-                    player = null;
+                case DefaultBattleScript.States.RETREAT:
+                    entity.transform.rotation = Quaternion.identity;
+
+                    entity = null;
                     canDoubleHop = false;
                     waitForInput = false;
                     break;
@@ -44,34 +58,45 @@ public class Jump : Attack
         }
     }
 
-    override public IEnumerator Behavior(GiuseppeBattleScript player, Transform enemy)
+    override public IEnumerator Behavior(DefaultBattleScript entity, Transform target)
     {
-        this.player = player;
+        this.entity = entity;
 
         // move towards enemy
-        player.GetRigidbody().velocity = Vector3.right * player.moveSpeed;
+        entity.GetRigidbody().velocity = Vector3.right * entity.moveSpeed;
 
         // wait until player is at a certain distance from enemy
-        yield return new WaitUntil(() => Vector3.Distance(player.transform.position, enemy.position) < 5.0f);
+        yield return new WaitUntil(() => Vector3.Distance(entity.transform.position, target.position) < 4.9f);
 
         // halt for 0.5s
-        player.GetRigidbody().velocity = Vector3.zero;
+        entity.GetRigidbody().velocity = Vector3.zero;
 
-        cameraController.ZoomToEnemies();
 
-        player.GetAnimator().Play("PlayerSquat");
+        if (entity.GetComponent<GiuseppeBattleScript>() != null)
+        {
+            cameraController.ZoomToEnemies();
+
+            entity.GetAnimator().Play("PlayerSquat");
+        }
+        else
+        {
+            cameraController.ZoomToPlayers();
+        }
 
         yield return new WaitForSeconds(1.0f);
 
+        jumpPos = entity.transform.position;
+        lookAtPoint = Vector3.Lerp(entity.transform.position, target.position, 0.5f);
+
         // hop
-        player.GetRigidbody().velocity = new Vector3(player.moveSpeed, player.hopHeight, player.GetRigidbody().velocity.z);
+        entity.GetRigidbody().velocity = new Vector3(entity.moveSpeed, entity.hopHeight, entity.GetRigidbody().velocity.z);
 
         waitForInput = true;
 
         // wait until player is directly above enemy
-        yield return new WaitUntil(() => Vector3.Distance(player.transform.position, enemy.position) < 2.5f);
+        yield return new WaitUntil(() => Vector3.Distance(entity.transform.position, target.position) < 2.5f);
 
-        Debug.Log(Vector3.Distance(player.transform.position, enemy.position));
+        Debug.Log(Vector3.Distance(entity.transform.position, target.position));
 
         canDoubleHop = waitForInput ? true : false;
     }

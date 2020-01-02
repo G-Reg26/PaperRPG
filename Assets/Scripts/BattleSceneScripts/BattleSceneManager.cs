@@ -110,17 +110,17 @@ public class BattleSceneManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gregg.currentState == GreggBattleScript.States.WAITING && player.currentState == GiuseppeBattleScript.States.WAITING)
+        if (gregg.currentState == DefaultBattleScript.States.WAITING && player.currentState == DefaultBattleScript.States.WAITING)
         {
             playerAttack = !playerAttack;
 
             if (playerAttack)
             {
-                player.currentState = GiuseppeBattleScript.States.READY;
+                player.currentState = DefaultBattleScript.States.READY;
             }
             else
             {
-                gregg.currentState = GreggBattleScript.States.READY;
+                gregg.currentState = DefaultBattleScript.States.READY;
             }
         }
 
@@ -170,17 +170,17 @@ public class BattleSceneManager : MonoBehaviour
                 knife.rectTransform.anchoredPosition = Vector3.Lerp(knife.rectTransform.anchoredPosition, target, 15.0f * Time.deltaTime);
                 break;
             case States.WAITING:
-                if (player.currentState == GiuseppeBattleScript.States.READY)
+                if (player.currentState == DefaultBattleScript.States.READY)
                 {
                     currentState = States.EXPANDING;
 
                     StartCoroutine(ExpandMenu());
                 }
-                else if (gregg.currentState == GreggBattleScript.States.READY)
+                else if (gregg.currentState == DefaultBattleScript.States.READY)
                 {
-                    gregg.currentState = GreggBattleScript.States.ATTACKING;
+                    gregg.currentState = DefaultBattleScript.States.ATTACKING;
 
-                    StartCoroutine(gregg.Attack());
+                    gregg.Attack(0);
                 }
                 break;
         }
