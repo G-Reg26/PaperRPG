@@ -51,3 +51,6 @@ TagManager:
   - name: Player
     uniqueID: 3743538215
     locked: 0
+  - name: HopPoof
+    uniqueID: 1514327793
+    locked: 0

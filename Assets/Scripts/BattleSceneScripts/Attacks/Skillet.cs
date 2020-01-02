@@ -82,18 +82,18 @@ public class Skillet : Attack
         }
     }
 
-    override public IEnumerator Behavior(GiuseppeBattleScript player, Transform enemy)
+    override public IEnumerator Behavior(DefaultBattleScript entity, Transform target)
     {
         // Reel back to charge up
-        player.GetRigidbody().velocity = Vector3.right * player.moveSpeed;
+        entity.GetRigidbody().velocity = Vector3.right * entity.moveSpeed;
 
         cameraController.ZoomToEnemies();
 
-        yield return new WaitUntil(() => Vector3.Distance(player.transform.position, enemy.position) < 1.5f);
+        yield return new WaitUntil(() => Vector3.Distance(entity.transform.position, target.position) < 1.5f);
 
-        player.GetRigidbody().velocity = Vector3.zero;
+        entity.GetRigidbody().velocity = Vector3.zero;
 
-        this.player = player;
+        player = entity.GetComponent<GiuseppeBattleScript>();
 
         player.cubesContainer.SetActive(true);
 
@@ -101,11 +101,11 @@ public class Skillet : Attack
 
         yield return new WaitUntil(() => hit);
 
-        player.GetAnimator().Play("PlayerSkilletHit");
+        entity.GetAnimator().Play("PlayerSkilletHit");
 
         yield return new WaitForSeconds(0.15f);
 
-        player.GetAnimator().Play("PlayerIdle");
+        entity.GetAnimator().Play("PlayerIdle");
 
         player.cubesContainer.SetActive(false);
 
@@ -116,8 +116,8 @@ public class Skillet : Attack
 
         Reset();
 
-        player.currentState = DefaultBattleScript.States.RETREAT;
+        entity.currentState = DefaultBattleScript.States.RETREAT;
 
-        StartCoroutine(player.RetreatBehavior(-player.moveSpeed, true));
+        StartCoroutine(entity.RetreatBehavior(true));
     }
 }

@@ -27,17 +27,20 @@ public class GreggBattleScript : DefaultBattleScript
     {
         base.Update();
 
-        if (facingRight)
+        if (currentState != States.ATTACKING)
         {
-            Vector3 target = Vector3.RotateTowards(sprite.forward, -Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
+            if (facingRight && currentState != States.ATTACKING)
+            {
+                Vector3 target = Vector3.RotateTowards(sprite.forward, -Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
 
-            sprite.rotation = Quaternion.LookRotation(target);
-        }
-        else
-        {
-            Vector3 target = Vector3.RotateTowards(sprite.forward, Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
+                sprite.rotation = Quaternion.LookRotation(target);
+            }
+            else
+            {
+                Vector3 target = Vector3.RotateTowards(sprite.forward, Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
 
-            sprite.rotation = Quaternion.LookRotation(target);
+                sprite.rotation = Quaternion.LookRotation(target);
+            }
         }
     }
 
@@ -49,25 +52,11 @@ public class GreggBattleScript : DefaultBattleScript
         }
     }
 
-    public IEnumerator Attack()
+    public void Attack(int index)
     {
-        yield return new WaitForSeconds(0.5f);
+        base.Attack(index);
 
-        // move towards enemy
-        rb.velocity = Vector3.left * moveSpeed;
-
-        // wait until player is at a certain distance from enemy
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, player.position) < 5.0f);
-
-        // halt for 0.5s
-        rb.velocity = Vector3.zero;
-
-        cameraController.ZoomToPlayers();
-
-        yield return new WaitForSeconds(1.0f);
-
-        // hop
-        rb.velocity = new Vector3(-moveSpeed, hopHeight, rb.velocity.z);
+        currentCoroutine = StartCoroutine(attacks[index].Behavior(this, player));
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -89,7 +78,7 @@ public class GreggBattleScript : DefaultBattleScript
 
                 currentState = States.RETREAT;
 
-                currentCoroutine = StartCoroutine(RetreatBehavior(moveSpeed, false));
+                currentCoroutine = StartCoroutine(RetreatBehavior(false));
             }
             else
             {
@@ -105,13 +94,16 @@ public class GreggBattleScript : DefaultBattleScript
                     currentCoroutine = null;
                 }
 
-                if (Vector3.Dot(collisionNormal, -Vector3.up) == 1.0f)
+                if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
                 {
+                    hopPoof.transform.position = new Vector3(collision.contacts[0].point.x, collision.contacts[0].point.y, -0.1f);
+                    hopPoof.Play();
+
                     currentCoroutine = StartCoroutine(SquashNStretch());
                 }
-                else if (Vector3.Dot(collisionNormal, Vector3.right) == 1.0f)
+                else if (Vector3.Dot(collisionNormal, Vector3.right) > 0.9f)
                 {
-                    currentCoroutine = StartCoroutine(BumpedInto(moveSpeed));
+                    currentCoroutine = StartCoroutine(BumpedInto());
                 }
             }
         }

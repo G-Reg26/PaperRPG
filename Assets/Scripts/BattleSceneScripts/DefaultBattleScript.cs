@@ -17,7 +17,12 @@ public class DefaultBattleScript : MonoBehaviour
 
     public float moveSpeed;
     public float hopHeight;
+    public float maxScale;
     public float squashNStretchSpeed;
+
+    public Attack[] attacks;
+
+    public ParticleSystem hopPoof;
 
     [SerializeField]
     protected LayerMask whatIsGround;
@@ -101,6 +106,13 @@ public class DefaultBattleScript : MonoBehaviour
         return (Mathf.Sin(theta) * amp) - amp;
     }
 
+    public void Attack(int index)
+    {
+        Reset();
+
+        currentState = States.ATTACKING;
+    }
+
     virtual public void Retreat()
     {
         
@@ -117,16 +129,16 @@ public class DefaultBattleScript : MonoBehaviour
         return anim;
     }
 
-    public IEnumerator RetreatBehavior(float retreatSpeed, bool faceRight)
+    public IEnumerator RetreatBehavior(bool faceRight)
     {
-        rb.velocity = new Vector3(retreatSpeed, rb.velocity.y, rb.velocity.z);
+        rb.velocity = new Vector3(-moveSpeed, rb.velocity.y, rb.velocity.z);
 
         FindObjectOfType<BattleCameraController>().ToInitialPoint();
 
         transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         //Wait until back in the reset position
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < 0.05f);
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < 0.1f);
 
         transform.position = initPos;
 
@@ -142,6 +154,10 @@ public class DefaultBattleScript : MonoBehaviour
 
     public IEnumerator SquashNStretch()
     {
+        transform.position = initPos;
+
+        rb.velocity = Vector3.zero;
+
         //While loop for Squish Animation
         while (SNSpeed > 0.0f)
         {
@@ -176,11 +192,13 @@ public class DefaultBattleScript : MonoBehaviour
         Reset();
     }
 
-    public IEnumerator BumpedInto(float bumpSpeed)
+    public IEnumerator BumpedInto()
     {
-        rb.velocity = new Vector3(bumpSpeed, hopHeight, rb.velocity.z);
+        rb.velocity = new Vector3(-moveSpeed, hopHeight, rb.velocity.z);
 
-        float n = bumpSpeed;
+        yield return new WaitUntil(() => grounded);
+
+        float n = -moveSpeed;
 
         while (n > 0)
         {
@@ -188,21 +206,21 @@ public class DefaultBattleScript : MonoBehaviour
 
             if (moveSpeed > 0.0f)
             {
-                n -= 5.0f * Time.deltaTime;
+                n += 5.0f * Time.deltaTime;
             }
             else
             {
-                n += 5.0f * Time.deltaTime;
+                n -= 5.0f * Time.deltaTime;
             }
 
             yield return null;
         }
 
         // Reel back to charge up
-        rb.velocity = Vector3.right * -bumpSpeed;
+        rb.velocity = Vector3.right * moveSpeed;
 
         //Wait until back in the reset position
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < moveSpeed * 0.02f);
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) <  0.1f);
 
         transform.position = initPos;
 

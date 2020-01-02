@@ -2,11 +2,7 @@
 using UnityEngine;
 
 public class GiuseppeBattleScript : DefaultBattleScript {
-
-    public Attack[] attacks;
-
-    public float maxScale;
-
+    
     public GameObject cubesContainer;
     public MeshRenderer[] cubes;
 
@@ -56,18 +52,21 @@ public class GiuseppeBattleScript : DefaultBattleScript {
     void Update()
     {
         base.Update();
-            
-        if (facingRight)
-        {
-            Vector3 target = Vector3.RotateTowards(sprite.forward, Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
 
-            sprite.rotation = Quaternion.LookRotation(target);
-        }
-        else
+        if (currentState != States.ATTACKING)
         {
-            Vector3 target = Vector3.RotateTowards(sprite.forward, -Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
+            if (facingRight)
+            {
+                Vector3 target = Vector3.RotateTowards(sprite.forward, Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
 
-            sprite.rotation = Quaternion.LookRotation(target);
+                sprite.rotation = Quaternion.LookRotation(target);
+            }
+            else
+            {
+                Vector3 target = Vector3.RotateTowards(sprite.forward, -Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
+
+                sprite.rotation = Quaternion.LookRotation(target);
+            }
         }
     }
 
@@ -85,9 +84,7 @@ public class GiuseppeBattleScript : DefaultBattleScript {
     // state behaviors
     public void Attack(int index)
     {
-        Reset();
-
-        currentState = States.ATTACKING;
+        base.Attack(index);
 
         currentCoroutine = StartCoroutine(attacks[index].Behavior(this, enemy));
     }
@@ -130,7 +127,7 @@ public class GiuseppeBattleScript : DefaultBattleScript {
 
                     currentState = States.RETREAT;
 
-                    currentCoroutine = StartCoroutine(RetreatBehavior(-moveSpeed, true));
+                    currentCoroutine = StartCoroutine(RetreatBehavior(true));
                 }
             }
             else
@@ -147,13 +144,16 @@ public class GiuseppeBattleScript : DefaultBattleScript {
                     currentCoroutine = null;
                 }
 
-                if (Vector3.Dot(collisionNormal, -Vector3.up) == 1.0f)
+                if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
                 {
+                    hopPoof.transform.position = new Vector3(collision.contacts[0].point.x, collision.contacts[0].point.y, -0.1f);
+                    hopPoof.Play();
+
                     currentCoroutine = StartCoroutine(SquashNStretch());
                 }
-                else if (Vector3.Dot(collisionNormal, Vector3.right) == 1.0f)
+                else if (Vector3.Dot(collisionNormal, Vector3.right) > 0.9f)
                 {
-                    currentCoroutine = StartCoroutine(BumpedInto(-moveSpeed));
+                    currentCoroutine = StartCoroutine(BumpedInto());
                 }
             }
         }
