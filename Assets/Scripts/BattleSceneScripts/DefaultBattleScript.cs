@@ -22,6 +22,8 @@ public class DefaultBattleScript : MonoBehaviour
 
     public Attack[] attacks;
 
+    public int currentAttackIndex;
+
     public ParticleSystem hopPoof;
 
     [SerializeField]
@@ -33,6 +35,8 @@ public class DefaultBattleScript : MonoBehaviour
 
     protected Transform sprite;
     protected Transform feet;
+
+    protected LayerMask initLayer;
 
     protected Vector3 initPos;
 
@@ -60,9 +64,15 @@ public class DefaultBattleScript : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         anim = sprite.GetComponent<Animator>();
+
+        currentState = States.WAITING;
+
+        initLayer = gameObject.layer;
+
+        SNSpeed = squashNStretchSpeed;
     }
 
-    protected void Reset()
+    virtual public void Reset()
     {
         squashDegree = 0.0f;
 
@@ -72,6 +82,8 @@ public class DefaultBattleScript : MonoBehaviour
         sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
 
         currentState = States.WAITING;
+
+        gameObject.layer = initLayer;
     }
 
     // Update is called once per frame
@@ -85,6 +97,7 @@ public class DefaultBattleScript : MonoBehaviour
                 Retreat();
                 break;
             case States.ATTACKING:
+                gameObject.layer = LayerMask.NameToLayer("Battle");
                 break;
             case States.ATTACKED:
                 break;
@@ -106,9 +119,11 @@ public class DefaultBattleScript : MonoBehaviour
         return (Mathf.Sin(theta) * amp) - amp;
     }
 
-    public void Attack(int index)
+    virtual public void Attack(int index)
     {
         Reset();
+
+        currentAttackIndex = index;
 
         currentState = States.ATTACKING;
     }
@@ -131,7 +146,11 @@ public class DefaultBattleScript : MonoBehaviour
 
     public IEnumerator RetreatBehavior(bool faceRight)
     {
-        rb.velocity = new Vector3(-moveSpeed, rb.velocity.y, rb.velocity.z);
+        Vector3 dir = (initPos - transform.position).normalized;
+
+        dir.y = 0.0f;
+
+        rb.velocity = new Vector3(moveSpeed * dir.x, rb.velocity.y, moveSpeed * dir.z);
 
         FindObjectOfType<BattleCameraController>().ToInitialPoint();
 
@@ -150,6 +169,8 @@ public class DefaultBattleScript : MonoBehaviour
         facingRight = faceRight;
 
         currentCoroutine = null;
+
+        Reset();
     }
 
     public IEnumerator SquashNStretch()
@@ -192,32 +213,18 @@ public class DefaultBattleScript : MonoBehaviour
         Reset();
     }
 
-    public IEnumerator BumpedInto()
+    public IEnumerator BumpedInto(Vector3 dir)
     {
-        rb.velocity = new Vector3(-moveSpeed, hopHeight, rb.velocity.z);
+        rb.velocity = new Vector3(dir.x * moveSpeed / 2.0f, hopHeight / 2.0f, dir.z * moveSpeed / 2.0f);
+
+        yield return new WaitForSeconds(0.2f);
 
         yield return new WaitUntil(() => grounded);
 
-        float n = -moveSpeed;
-
-        while (n > 0)
-        {
-            rb.velocity = new Vector3(n, rb.velocity.y, rb.velocity.z);
-
-            if (moveSpeed > 0.0f)
-            {
-                n += 5.0f * Time.deltaTime;
-            }
-            else
-            {
-                n -= 5.0f * Time.deltaTime;
-            }
-
-            yield return null;
-        }
+        Vector3 n = -rb.velocity;
 
         // Reel back to charge up
-        rb.velocity = Vector3.right * moveSpeed;
+        rb.velocity = -dir * moveSpeed;
 
         //Wait until back in the reset position
         yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) <  0.1f);

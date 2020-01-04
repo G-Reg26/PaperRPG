@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GreggBattleScript : DefaultBattleScript
-{   
+{
+    public Transform selectPoint;
+
     private Transform player;
 
     private BattleCameraController cameraController;
@@ -17,8 +19,6 @@ public class GreggBattleScript : DefaultBattleScript
 
         cameraController = FindObjectOfType<BattleCameraController>();
 
-        currentState = States.WAITING;
-
         facingRight = false;
     }
 
@@ -29,7 +29,7 @@ public class GreggBattleScript : DefaultBattleScript
 
         if (currentState != States.ATTACKING)
         {
-            if (facingRight && currentState != States.ATTACKING)
+            if (facingRight)
             {
                 Vector3 target = Vector3.RotateTowards(sprite.forward, -Vector3.forward, 15.0f * Time.deltaTime, 0.0f);
 
@@ -52,7 +52,7 @@ public class GreggBattleScript : DefaultBattleScript
         }
     }
 
-    public void Attack(int index)
+    override public void Attack(int index)
     {
         base.Attack(index);
 
@@ -66,6 +66,8 @@ public class GreggBattleScript : DefaultBattleScript
         {
             if (currentState == States.ATTACKING)
             {
+                collision.gameObject.GetComponent<BattleStats>().health -= attacks[currentAttackIndex].damage;
+
                 //Cancel current coroutine if one is active
                 if (currentCoroutine != null)
                 {
@@ -79,14 +81,15 @@ public class GreggBattleScript : DefaultBattleScript
                 currentState = States.RETREAT;
 
                 currentCoroutine = StartCoroutine(RetreatBehavior(false));
+
+                collision.gameObject.layer = LayerMask.NameToLayer("Player");
             }
             else
             {
-                Reset();
-
                 currentState = States.ATTACKED;
 
                 Vector3 collisionNormal = collision.contacts[0].normal;
+
                 //Cancel current coroutine if one is active
                 if (currentCoroutine != null)
                 {
@@ -96,14 +99,17 @@ public class GreggBattleScript : DefaultBattleScript
 
                 if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
                 {
+                    Debug.Log("Hop");
+
                     hopPoof.transform.position = new Vector3(collision.contacts[0].point.x, collision.contacts[0].point.y, -0.1f);
                     hopPoof.Play();
 
                     currentCoroutine = StartCoroutine(SquashNStretch());
                 }
-                else if (Vector3.Dot(collisionNormal, Vector3.right) > 0.9f)
+                else
                 {
-                    currentCoroutine = StartCoroutine(BumpedInto());
+                    Debug.Log(collision.contacts[0].normal);
+                    currentCoroutine = StartCoroutine(BumpedInto(collision.contacts[0].normal));
                 }
             }
         }

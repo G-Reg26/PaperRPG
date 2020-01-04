@@ -6,7 +6,7 @@ public class GiuseppeBattleScript : DefaultBattleScript {
     public GameObject cubesContainer;
     public MeshRenderer[] cubes;
 
-    private Transform enemy;
+    public Transform target;
 
     private ParticleSystem dust;
     private Vector3 dustLocalPosition;
@@ -18,7 +18,7 @@ public class GiuseppeBattleScript : DefaultBattleScript {
     {
         base.Start();
 
-        enemy = FindObjectOfType<GreggBattleScript>().transform;
+        target = FindObjectOfType<GreggBattleScript>().transform;
 
         dust = GetComponentInChildren<ParticleSystem>();
 
@@ -28,13 +28,11 @@ public class GiuseppeBattleScript : DefaultBattleScript {
 
         cubesContainer.SetActive(false);
 
-        currentState = States.READY;
-
         facingRight = true;
         doubleHop = false;
     }
 
-    void Reset()
+    override public void Reset()
     {
         base.Reset();
 
@@ -82,11 +80,11 @@ public class GiuseppeBattleScript : DefaultBattleScript {
     }
 
     // state behaviors
-    public void Attack(int index)
+    override public void Attack(int index)
     {
         base.Attack(index);
 
-        currentCoroutine = StartCoroutine(attacks[index].Behavior(this, enemy));
+        currentCoroutine = StartCoroutine(attacks[index].Behavior(this, target));
     }
 
     override public void Retreat()
@@ -104,6 +102,8 @@ public class GiuseppeBattleScript : DefaultBattleScript {
         {
             if (currentState == States.ATTACKING)
             {
+                collision.gameObject.GetComponent<BattleStats>().health -= attacks[currentAttackIndex].damage;
+
                 dust.Stop();
                 dust.transform.parent = null;
 
@@ -128,12 +128,12 @@ public class GiuseppeBattleScript : DefaultBattleScript {
                     currentState = States.RETREAT;
 
                     currentCoroutine = StartCoroutine(RetreatBehavior(true));
+
+                    collision.gameObject.layer = LayerMask.NameToLayer("Enemy");
                 }
             }
             else
             {
-                Reset();
-
                 currentState = States.ATTACKED;
 
                 Vector3 collisionNormal = collision.contacts[0].normal;
@@ -151,9 +151,9 @@ public class GiuseppeBattleScript : DefaultBattleScript {
 
                     currentCoroutine = StartCoroutine(SquashNStretch());
                 }
-                else if (Vector3.Dot(collisionNormal, Vector3.right) > 0.9f)
+                else
                 {
-                    currentCoroutine = StartCoroutine(BumpedInto());
+                    currentCoroutine = StartCoroutine(BumpedInto(collision.contacts[0].normal));
                 }
             }
         }

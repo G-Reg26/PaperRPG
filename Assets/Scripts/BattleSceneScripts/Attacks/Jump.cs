@@ -60,17 +60,22 @@ public class Jump : Attack
 
     override public IEnumerator Behavior(DefaultBattleScript entity, Transform target)
     {
+        target.gameObject.layer = LayerMask.NameToLayer("Battle");
+
         this.entity = entity;
 
+        Vector3 dir = (target.position - entity.transform.position).normalized;
+
+        dir.y = 0.0f;
+
         // move towards enemy
-        entity.GetRigidbody().velocity = Vector3.right * entity.moveSpeed;
+        entity.GetRigidbody().velocity = dir * entity.moveSpeed;
 
         // wait until player is at a certain distance from enemy
         yield return new WaitUntil(() => Vector3.Distance(entity.transform.position, target.position) < 4.9f);
 
         // halt for 0.5s
         entity.GetRigidbody().velocity = Vector3.zero;
-
 
         if (entity.GetComponent<GiuseppeBattleScript>() != null)
         {
@@ -89,14 +94,12 @@ public class Jump : Attack
         lookAtPoint = Vector3.Lerp(entity.transform.position, target.position, 0.5f);
 
         // hop
-        entity.GetRigidbody().velocity = new Vector3(entity.moveSpeed, entity.hopHeight, entity.GetRigidbody().velocity.z);
+        entity.GetRigidbody().velocity = new Vector3(entity.moveSpeed * dir.x, entity.hopHeight, entity.moveSpeed * dir.z);
 
         waitForInput = true;
 
         // wait until player is directly above enemy
         yield return new WaitUntil(() => Vector3.Distance(entity.transform.position, target.position) < 2.5f);
-
-        Debug.Log(Vector3.Distance(entity.transform.position, target.position));
 
         canDoubleHop = waitForInput ? true : false;
     }

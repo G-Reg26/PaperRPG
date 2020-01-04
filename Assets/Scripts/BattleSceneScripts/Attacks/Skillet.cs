@@ -84,8 +84,13 @@ public class Skillet : Attack
 
     override public IEnumerator Behavior(DefaultBattleScript entity, Transform target)
     {
-        // Reel back to charge up
-        entity.GetRigidbody().velocity = Vector3.right * entity.moveSpeed;
+        target.gameObject.layer = LayerMask.NameToLayer("Battle");
+
+        Vector3 dir = (target.position - entity.transform.position).normalized;
+
+        dir.y = 0.0f;
+
+        entity.GetRigidbody().velocity = dir * entity.moveSpeed;
 
         cameraController.ZoomToEnemies();
 

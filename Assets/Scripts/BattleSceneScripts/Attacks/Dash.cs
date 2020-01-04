@@ -11,10 +11,16 @@ public class Dash : Attack
 
     override public IEnumerator Behavior(DefaultBattleScript entity, Transform target)
     {
+        target.gameObject.layer = LayerMask.NameToLayer("Battle");
+
         entity.GetAnimator().speed = 0.5f;
 
+        Vector3 dir = (target.position - entity.transform.position).normalized;
+
+        dir.y = 0.0f;
+
         // Reel back to charge up
-        entity.GetRigidbody().velocity = -Vector3.right * entity.moveSpeed / 5.0f;
+        entity.GetRigidbody().velocity = -dir * entity.moveSpeed / 5.0f;
 
         //Increase in size while charging up
         while (entity.transform.localScale.x < entity.maxScale)
@@ -34,7 +40,7 @@ public class Dash : Attack
         }
 
         // move towards enemy
-        entity.GetRigidbody().velocity = Vector3.right * entity.moveSpeed * 2.0f;
+        entity.GetRigidbody().velocity = dir * entity.moveSpeed * 2.0f;
 
         entity.GetAnimator().speed = 3.0f;
 
