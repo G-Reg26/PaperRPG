@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using UnityEngine.UI;
 using UnityEngine;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ public class BattleSceneManager : MonoBehaviour
     public States currentState;
 
     public List<DefaultBattleScript> entities;
+    public List<GiuseppeBattleScript> players;
+    public List<GreggBattleScript> enemies;
+
     public int activeEntity;
 
     private Coroutine currentCoroutine;
@@ -25,12 +29,20 @@ public class BattleSceneManager : MonoBehaviour
 
         entities = new List<DefaultBattleScript>();
 
-        foreach (GiuseppeBattleScript player in FindObjectsOfType<GiuseppeBattleScript>())
+        players = FindObjectsOfType<GiuseppeBattleScript>().ToList();
+
+        players = players.OrderBy(x => x.transform.position.x).ToList();
+
+        enemies = FindObjectsOfType<GreggBattleScript>().ToList();
+
+        enemies = enemies.OrderByDescending(x => x.transform.position.x).ToList();
+
+        foreach (DefaultBattleScript player in players)
         {
             entities.Add(player);
         }
 
-        foreach (GreggBattleScript enemy in FindObjectsOfType<GreggBattleScript>())
+        foreach (DefaultBattleScript enemy in enemies)
         {
             entities.Add(enemy);
         }
