@@ -2,7 +2,7 @@
 Cooking based Paper Mario inspired RPG
 
 # Gameplay
-Check out the battle system so far! https://www.youtube.com/watch?v=qvuRyIY9XGc&feature=youtu.be
+Check out the battle system so far!</br>https://www.youtube.com/watch?v=qvuRyIY9XGc&feature=youtu.be
 
 # Credits
 Gregorio Lozada: Battle system scripts & art
