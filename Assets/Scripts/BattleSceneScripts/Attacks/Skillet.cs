@@ -7,6 +7,8 @@ public class Skillet : Attack
     private GiuseppeBattleScript player;
 
     private float timer;
+    private float shakeTimer;
+
     private int i;
 
     private bool hit;
@@ -15,12 +17,15 @@ public class Skillet : Attack
     public override void Start()
     {
         base.Start();
+
+        Reset();
     }
 
     public void Reset()
     {
         i = 0;
         timer = 0.0f;
+        shakeTimer = 0.0f;
 
         hit = false;
 
@@ -31,53 +36,72 @@ public class Skillet : Attack
     {
         if (player != null)
         {
-            if (!hit)
+            if (i >= player.eggTimerFrames.Length - 1)
             {
-                // player has let the stick loose
-                if (Input.GetAxis("Horizontal") >= 0.0f)
+                shakeTimer += Time.deltaTime;
+
+                if (shakeTimer > 0.05f)
                 {
-                    if (i > 0 && i <= player.cubes.Length)
+                    if (player.eggTimer.transform.rotation == Quaternion.identity || player.eggTimer.transform.rotation.eulerAngles.z > 350.0f)
                     {
-                        hit = true;
-                        return;
+                        player.eggTimer.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, 5.0f));
                     }
+                    else if (player.eggTimer.transform.rotation.eulerAngles.z < 10.0f)
+                    {
+                        player.eggTimer.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, 355.0f));
+                    }
+
+                    shakeTimer = 0.0f;
                 }
-                // player has not let the stick loose and is too late
+            }
+            else
+            {
+                if (player.eggTimer.transform.localScale.x > 1.0f)
+                {
+                    player.eggTimer.transform.localScale -= Vector3.one * 2.0f * Time.deltaTime;
+                }
                 else
                 {
-                    if (i > player.cubes.Length)
-                    {
-                        foreach (MeshRenderer cube in player.cubes)
-                        {
-                            cube.material.color = Color.red;
-                        }
-
-                        hit = true;
-                        return;
-                    }
+                    player.eggTimer.transform.localScale = Vector3.one;
                 }
+            }
 
-                timer += Time.deltaTime;
-
-                if (timer >= 0.5f)
+            if (!hit)
+            {
+                if (i <= player.eggTimerFrames.Length)
                 {
-                    if (i < player.cubes.Length - 1)
+                    if (Input.GetAxis("Horizontal") >= 0.0f)
                     {
-                        player.cubes[i].material.color = Color.red;
-                    }
-                    else if (i == player.cubes.Length - 1)
-                    {
-                        foreach (MeshRenderer mr in player.cubes)
+                        if (i > 0)
                         {
-                            mr.material.color = Color.green;
+                            hit = true;
+                            return;
                         }
                     }
 
-                    i++;
+                    timer += Time.deltaTime;
 
-                    timer = 0.0f;
+                    if (timer >= 0.5f)
+                    {
+                        i++;
+
+                        player.eggTimer.gameObject.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
+
+                        if (i < player.eggTimerFrames.Length)
+                        {
+                            player.eggTimer.sprite = player.eggTimerFrames[i];
+                        }
+                        else
+                        {
+                            player.eggTimer.color = Color.red;
+
+                            hit = true;
+                            return;
+                        }
+
+                        timer = 0.0f;
+                    }
                 }
-
             }
         }
     }
@@ -100,7 +124,7 @@ public class Skillet : Attack
 
         player = entity.GetComponent<GiuseppeBattleScript>();
 
-        player.cubesContainer.SetActive(true);
+        player.eggTimer.enabled = true;
 
         player.GetAnimator().Play("PlayerReelBack");
 
@@ -108,16 +132,19 @@ public class Skillet : Attack
 
         entity.GetAnimator().Play("PlayerSkilletHit");
 
+        player.Hit(target.gameObject, true, false);
+        target.GetComponent<DefaultBattleScript>().Hurt(-Vector3.up, target.position);
+
         yield return new WaitForSeconds(0.15f);
 
         entity.GetAnimator().Play("PlayerIdle");
 
-        player.cubesContainer.SetActive(false);
+        player.eggTimer.enabled = false;
+        player.eggTimer.sprite = player.eggTimerFrames[0];
+        player.eggTimer.color = Color.white;
 
-        for (int i = 0; i < player.cubes.Length; i++)
-        {
-            player.cubes[i].material.color = Color.white;
-        }
+        player.eggTimer.transform.rotation = Quaternion.identity;
+        player.eggTimer.transform.localScale = Vector3.one;
 
         Reset();
 

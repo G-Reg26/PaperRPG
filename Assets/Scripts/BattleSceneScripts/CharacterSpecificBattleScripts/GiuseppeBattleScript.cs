@@ -3,15 +3,17 @@ using UnityEngine;
 
 public class GiuseppeBattleScript : DefaultBattleScript {
     
-    public GameObject cubesContainer;
-    public MeshRenderer[] cubes;
+    //public GameObject cubesContainer;
+
+    public SpriteRenderer eggTimer;
+    public Sprite[] eggTimerFrames;
+
+    //public MeshRenderer[] cubes;
 
     public Transform target;
 
     private ParticleSystem dust;
     private Vector3 dustLocalPosition;
-
-    private bool doubleHop;
 
     // Use this for initialization
     void Start ()
@@ -24,12 +26,9 @@ public class GiuseppeBattleScript : DefaultBattleScript {
 
         dustLocalPosition = dust.transform.localPosition;
 
-        cubes = cubesContainer.GetComponentsInChildren<MeshRenderer>();
-
-        cubesContainer.SetActive(false);
+        eggTimer.enabled = false;
 
         facingRight = true;
-        doubleHop = false;
     }
 
     override public void Reset()
@@ -95,6 +94,14 @@ public class GiuseppeBattleScript : DefaultBattleScript {
         }
     }
 
+    override public void Hit(GameObject target, bool facingRight, bool fromCollision)
+    {
+        base.Hit(target, facingRight, fromCollision);
+
+        dust.Stop();
+        dust.transform.parent = null;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         //On collision trigger the squish effect
@@ -102,59 +109,11 @@ public class GiuseppeBattleScript : DefaultBattleScript {
         {
             if (currentState == States.ATTACKING)
             {
-                collision.gameObject.GetComponent<BattleStats>().health -= attacks[currentAttackIndex].damage;
-
-                dust.Stop();
-                dust.transform.parent = null;
-
-                //Cancel current coroutine if one is active
-                if (currentCoroutine != null)
-                {
-                    StopCoroutine(currentCoroutine);
-                    currentCoroutine = null;
-                }
-
-                if (doubleHop)
-                {
-                    rb.velocity = new Vector3(0.0f, hopHeight, rb.velocity.z);
-
-                    doubleHop = false;
-                }
-                else
-                {
-                    // hop off
-                    rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
-
-                    currentState = States.RETREAT;
-
-                    currentCoroutine = StartCoroutine(RetreatBehavior(true));
-
-                    collision.gameObject.layer = LayerMask.NameToLayer("Enemy");
-                }
+                Hit(collision.gameObject, true, true);
             }
             else
             {
-                currentState = States.ATTACKED;
-
-                Vector3 collisionNormal = collision.contacts[0].normal;
-                //Cancel current coroutine if one is active
-                if (currentCoroutine != null)
-                {
-                    StopCoroutine(currentCoroutine);
-                    currentCoroutine = null;
-                }
-
-                if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
-                {
-                    hopPoof.transform.position = new Vector3(collision.contacts[0].point.x, collision.contacts[0].point.y, -0.1f);
-                    hopPoof.Play();
-
-                    currentCoroutine = StartCoroutine(SquashNStretch());
-                }
-                else
-                {
-                    currentCoroutine = StartCoroutine(BumpedInto(collision.contacts[0].normal));
-                }
+                Hurt(collision.contacts[0].normal, collision.contacts[0].point);
             }
         }
     }

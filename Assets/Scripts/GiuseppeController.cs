@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Movement : MonoBehaviour
+public class GiuseppeController : MonoBehaviour
 {
     private Vector3 target;
     private bool facingRight;
@@ -18,14 +18,10 @@ public class Movement : MonoBehaviour
 
     private Rigidbody rb;
 
-    public ParticleSystem dust;
-    private Vector3 dustLocalPosition;
-
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        dustLocalPosition = dust.transform.localPosition;
 
         target = sprite.forward;
         facingRight = true;
@@ -41,8 +37,6 @@ public class Movement : MonoBehaviour
     void Update()
     {
         grounded = Physics.CheckSphere(feet.transform.position, groundCheckRadius, whatIsGround);
-
-        Debug.Log(Mathf.Abs(rb.velocity.x) + Mathf.Abs(rb.velocity.z));
 
         // look at target
         Vector3 dir = Vector3.RotateTowards(sprite.forward, target, 15 * Time.deltaTime, 0.0f);

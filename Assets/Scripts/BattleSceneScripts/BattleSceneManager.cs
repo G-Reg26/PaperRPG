@@ -9,7 +9,8 @@ public class BattleSceneManager : MonoBehaviour
     public enum States
     {
         WAITING,
-        BATTLE_IN_SESSION
+        BATTLE_IN_SESSION,
+        END
     }
 
     public States currentState;
@@ -53,9 +54,14 @@ public class BattleSceneManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (activeEntity == entities.Count)
+        if (activeEntity == entities.Count || activeEntity < 0)
         {
             activeEntity = 0;
+        }
+
+        if (enemies.Count == 0 && currentState != States.END)
+        {
+            currentState = States.END;
         }
 
         switch (currentState)
@@ -82,6 +88,22 @@ public class BattleSceneManager : MonoBehaviour
                     }
                 }
                 break;
+            default:
+                break;
+        }
+    }
+
+    public void RemoveEntity(DefaultBattleScript entity)
+    {
+        entities.Remove(entity);
+
+        if (entity.GetComponent<GreggBattleScript>())
+        {
+            enemies.Remove(entity.GetComponent<GreggBattleScript>());
+        }
+        else
+        {
+            players.Remove(entity.GetComponent<GiuseppeBattleScript>());
         }
     }
 

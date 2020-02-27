@@ -10,7 +10,8 @@ public class DefaultBattleScript : MonoBehaviour
         ATTACKING,
         RETREAT,
         ATTACKED,
-        WAITING
+        WAITING,
+        DEAD
     }
 
     public States currentState;
@@ -31,12 +32,14 @@ public class DefaultBattleScript : MonoBehaviour
     [SerializeField]
     protected float groundCheckRadius;
 
-    protected Coroutine currentCoroutine;
+    public Coroutine currentCoroutine;
 
     protected Transform sprite;
     protected Transform feet;
 
-    protected LayerMask initLayer;
+    protected BattleStats stats;
+
+    public LayerMask initLayer;
 
     protected Vector3 initPos;
 
@@ -51,6 +54,7 @@ public class DefaultBattleScript : MonoBehaviour
 
     protected bool grounded;
     protected bool facingRight;
+    protected bool doubleHop;
 
     // Start is called before the first frame update
     protected void Start()
@@ -70,6 +74,10 @@ public class DefaultBattleScript : MonoBehaviour
         initLayer = gameObject.layer;
 
         SNSpeed = squashNStretchSpeed;
+
+        stats = GetComponent<BattleStats>();
+
+        doubleHop = false;
     }
 
     virtual public void Reset()
@@ -81,7 +89,10 @@ public class DefaultBattleScript : MonoBehaviour
         sprite.localScale = new Vector3(1.0f, 1.0f, 1.0f);
         sprite.localPosition = new Vector3(sprite.localPosition.x, initY, sprite.localPosition.z);
 
-        currentState = States.WAITING;
+        if (currentState != States.DEAD)
+        {
+            currentState = States.WAITING;
+        }
 
         gameObject.layer = initLayer;
     }
@@ -130,7 +141,88 @@ public class DefaultBattleScript : MonoBehaviour
 
     virtual public void Retreat()
     {
-        
+
+    }
+
+    public void Hurt(Vector3 collisionNormal, Vector3 collisionPoint)
+    {
+
+        //Cancel current coroutine if one is active
+        if (currentCoroutine != null)
+        {
+            StopCoroutine(currentCoroutine);
+            currentCoroutine = null;
+        }
+
+        if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
+        {
+            hopPoof.transform.position = new Vector3(collisionPoint.x, collisionPoint.y, -0.1f);
+            hopPoof.Play();
+
+            currentCoroutine = StartCoroutine(SquashNStretch());
+        }
+        else
+        {
+            currentCoroutine = StartCoroutine(BumpedInto(collisionNormal));
+        }
+    }
+
+    virtual public void Hit(GameObject target, bool facingRight, bool fromCollsion)
+    {
+        BattleStats stats = target.GetComponent<BattleStats>();
+
+        stats.health -= attacks[currentAttackIndex].damage;
+
+        DefaultBattleScript targetBattleScript = target.gameObject.GetComponent<DefaultBattleScript>();
+
+        if (stats.health == 0)
+        {
+            doubleHop = false;
+
+            FindObjectOfType<BattleSceneManager>().RemoveEntity(targetBattleScript);
+
+            if (target.gameObject.GetComponent<GreggBattleScript>())
+            {
+                GreggBattleScript enemy = target.gameObject.GetComponent<GreggBattleScript>();
+
+                foreach (BattleMenu menu in FindObjectsOfType<BattleMenu>())
+                {
+                    menu.RemoveEnemy(enemy);
+                }
+            }
+
+            targetBattleScript.currentState = States.DEAD;
+        }
+        else
+        {
+            targetBattleScript.currentState = States.ATTACKED;
+        }
+
+        if (currentCoroutine != null && fromCollsion)
+        {
+            StopCoroutine(currentCoroutine);
+            currentCoroutine = null;
+        }
+
+        if (doubleHop)
+        {
+            rb.velocity = new Vector3(0.0f, hopHeight, rb.velocity.z);
+
+            doubleHop = false;
+        }
+        else
+        {
+            if (fromCollsion)
+            {
+                rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
+
+                currentState = States.RETREAT;
+
+                currentCoroutine = StartCoroutine(RetreatBehavior(facingRight));
+            }
+
+            target.gameObject.layer = targetBattleScript.initLayer;
+        }
     }
 
     // getters
@@ -227,7 +319,7 @@ public class DefaultBattleScript : MonoBehaviour
         rb.velocity = -dir * moveSpeed;
 
         //Wait until back in the reset position
-        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) <  0.1f);
+        yield return new WaitUntil(() => Vector3.Distance(transform.position, initPos) < 0.1f);
 
         transform.position = initPos;
 

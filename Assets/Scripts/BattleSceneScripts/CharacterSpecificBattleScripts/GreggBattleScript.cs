@@ -27,6 +27,8 @@ public class GreggBattleScript : DefaultBattleScript
     {
         base.Update();
 
+        anim.SetInteger("State", (int)currentState);
+
         if (currentState != States.ATTACKING)
         {
             if (facingRight)
@@ -66,51 +68,11 @@ public class GreggBattleScript : DefaultBattleScript
         {
             if (currentState == States.ATTACKING)
             {
-                collision.gameObject.GetComponent<BattleStats>().health -= attacks[currentAttackIndex].damage;
-
-                //Cancel current coroutine if one is active
-                if (currentCoroutine != null)
-                {
-                    StopCoroutine(currentCoroutine);
-                    currentCoroutine = null;
-                }
-
-                // hop off
-                rb.velocity = new Vector3(-moveSpeed, hopHeight / 2, rb.velocity.z);
-
-                currentState = States.RETREAT;
-
-                currentCoroutine = StartCoroutine(RetreatBehavior(false));
-
-                collision.gameObject.layer = LayerMask.NameToLayer("Player");
+                Hit(collision.gameObject, false, true);
             }
             else
             {
-                currentState = States.ATTACKED;
-
-                Vector3 collisionNormal = collision.contacts[0].normal;
-
-                //Cancel current coroutine if one is active
-                if (currentCoroutine != null)
-                {
-                    StopCoroutine(currentCoroutine);
-                    currentCoroutine = null;
-                }
-
-                if (Vector3.Dot(collisionNormal, -Vector3.up) > 0.9f)
-                {
-                    Debug.Log("Hop");
-
-                    hopPoof.transform.position = new Vector3(collision.contacts[0].point.x, collision.contacts[0].point.y, -0.1f);
-                    hopPoof.Play();
-
-                    currentCoroutine = StartCoroutine(SquashNStretch());
-                }
-                else
-                {
-                    Debug.Log(collision.contacts[0].normal);
-                    currentCoroutine = StartCoroutine(BumpedInto(collision.contacts[0].normal));
-                }
+                Hurt(collision.contacts[0].normal, collision.contacts[0].point);
             }
         }
     }

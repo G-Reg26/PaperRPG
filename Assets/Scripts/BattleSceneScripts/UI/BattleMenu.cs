@@ -236,6 +236,12 @@ public class BattleMenu : MonoBehaviour
         }
     }
 
+    public void RemoveEnemy(GreggBattleScript gregg)
+    {
+        greggs.Remove(gregg);
+        greggRange.y--;
+    }
+
     public IEnumerator ExpandMenu()
     {
         while (transform.localScale.x < 1.0f)

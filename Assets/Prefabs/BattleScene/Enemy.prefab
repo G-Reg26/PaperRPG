@@ -152,6 +152,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   groundCheckRadius: 0.25
+  initLayer:
+    serializedVersion: 2
+    m_Bits: 0
   selectPoint: {fileID: 2140594125}
 --- !u!114 &9031154439109920698
 MonoBehaviour:
@@ -252,6 +255,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7978338521770436521}
   - component: {fileID: 7978338521770436526}
+  - component: {fileID: 1435195215}
   m_Layer: 0
   m_Name: Sprite
   m_TagString: Untagged
@@ -322,3 +326,22 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &1435195215
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7978338521770436520}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 9922b6587b9614344850a87ecbf42be0, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
